@@ -6,5 +6,6 @@ class Settings:
         self.CLIENT_WAIT = 5.0
         self.EVICTION_INTERVAL = 3600.0
         self.THREADS = 500
+        self.DEBUG = False
 settings = Settings()
 

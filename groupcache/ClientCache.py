@@ -51,17 +51,14 @@ class ClientEvictionThread(Thread):
 
     def run(self):
         while True:
-          try:
-           time.sleep(settings.EVICTION_INTERVAL)
-           keys = getClientKeys()
-           for k in keys:
-             client = getClient(k)
-             if client is None:
-                continue
-             if client.hasExpired():
-                removeClient(k)
-          except KeyboardInterrupt:
-               return
+            time.sleep(settings.EVICTION_INTERVAL)
+            keys = getClientKeys()
+            for k in keys:
+                client = getClient(k)
+                if client is None:
+                    continue
+                if client.hasExpired():
+                    removeClient(k)
 
 class ClientEntry(object):
     def __init__(self,client_id,ttl):
@@ -127,18 +124,24 @@ class ClientCache(object):
       pass
 
   def addClient(self,client_id):
+      if settings.DEBUG:
+          print('ClientCache %s %s' % ('addClient',client_id))
       if not hasClient(client_id):
-         newClient(ClientEntry(client_id,settings.CLIENT_TTL))
+          newClient(ClientEntry(client_id,settings.CLIENT_TTL))
       else:
-         client =  getClient(client_id)
-         if client is not None:
-             client.touch()
+          client =  getClient(client_id)
+          if client is not None:
+              client.touch()
 
   def getMessages(self,client_id):
+      if settings.DEBUG:
+          print('ClientCache %s %s' % ('getMessages',client_id))
       client = getClient(client_id)
       return client.getMessages(settings.CLIENT_WAIT)
 
   def addMessage(self,client_id,message):
+      if settings.DEBUG:
+          print('ClientCache %s %s' % ('addMessage',client_id))
       client = getClient(client_id)
       if client is not None:
           msg = client.addMessage(message)

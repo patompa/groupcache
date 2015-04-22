@@ -1,40 +1,39 @@
 #! /usr/bin/env python
 import Pyro4
 import time
+from groupcache.ConsistentHashing import ConsistentHashing
+from groupcache.GroupCacheSettings import settings
 
 ns = Pyro4.locateNS()
 
-SERVERS = 1
 group_map = {}
 client_map = {}
 
-def loadServer(i):
-  group_uri = ns.lookup("group.cache.%d" % i)
-  group_map[i] =  group_uri
-  client_uri = ns.lookup("client.cache.%d" % i)
-  client_map[i] = client_uri
+default_servers = ['1']
 
-for i in range(1,SERVERS+1):
-    loadServer(i)
+hasher = ConsistentHashing(default_servers)
 
-def loadServers(n):
-  for i in range(1,n+1):
-    loadServer(i)
 
-def hashClient(client_id):
-    # TODO: Add consistent hashing algorithm
-    return 1
+def loadCacheServers(servers):
+    hasher = ConsistentHashing(servers)
+    for server in servers:
+        loadServer(server)
 
-def hashGroup(group_id):
-    # TODO: Add consistent hashing algorithm
-    return 1
+def loadServer(server):
+    group_uri = ns.lookup("group.cache.%s" % server)
+    group_map[server] =  group_uri
+    client_uri = ns.lookup("client.cache.%s" % server)
+    client_map[server] = client_uri
+
+for default_server in default_servers:
+    loadServer(default_server)
 
 def getClient(client_id):
-    client_uri = client_map[hashClient(client_id)]
+    client_uri = client_map[hasher.getServer(client_id)]
     return Pyro4.Proxy(client_uri)
 
 def getGroup(group_id):
-    group_uri = group_map[hashGroup(group_id)]
+    group_uri = group_map[hasher.getServer(group_id)]
     return Pyro4.Proxy(group_uri)
 
 class CacheClient(object):
@@ -81,5 +80,3 @@ if __name__ == '__main__':
     if command == "isempty":
         result = client.isEmpty(sys.argv[2])
     print result
-
-

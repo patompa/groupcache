@@ -14,7 +14,7 @@ def getGroup(group_id):
     all_groups_lock.reader_acquire()
     try:
         if group_id in all_groups:
-          my_group = all_groups[group_id]
+            my_group = all_groups[group_id]
     finally:
         all_groups_lock.reader_release()
     return my_group
@@ -58,17 +58,14 @@ class GroupEvictionThread(Thread):
 
     def run(self):
         while True:
-          try:
-           time.sleep(settings.EVICTION_INTERVAL)
-           keys = getGroupKeys()
-           for k in keys:
-             group = getGroup(k)
-             if group is None:
-                continue
-             if group.hasExpired():
-                removeGroup(k)
-          except KeyboardInterrupt:
-              return
+            time.sleep(settings.EVICTION_INTERVAL)
+            keys = getGroupKeys()
+            for k in keys:
+                group = getGroup(k)
+                if group is None:
+                    continue
+                if group.hasExpired():
+                    removeGroup(k)
 
 class GroupEntry(object):
     def __init__(self,group_id,ttl):
@@ -87,11 +84,9 @@ class GroupEntry(object):
 
     def addClient(self,client_id,ttl):
         self.touch()
-
         if not self.hasClient(client_id):
             self.newClient(client_id)
    
-
     def isEmpty(self):
         self.lock.reader_acquire()
         try:
@@ -132,16 +127,22 @@ class GroupCache(object):
       pass
 
   def addClient(self,client_id, group_id):
+      if settings.DEBUG:
+          print("GroupCache %s %s %s" % ('addClient',client_id,group_id))
       group = addGroup(group_id,settings.GROUP_TTL)
       group.addClient(client_id,settings.CLIENT_TTL)
 
   def getClients(self,group_id):
+      if settings.DEBUG:
+          print("GroupCache %s %s" % ('getClients',group_id))
       group = getGroup(group_id)
       if group is None:
           return []
       return group.getClients()
 
   def isEmpty(self,group_id):
+      if settings.DEBUG:
+          print("GroupCache %s %s" % ('isEmpty ',group_id))
       group_exists = hasGroup(group_id)
       if not group_exists:
           return True
