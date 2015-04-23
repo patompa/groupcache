@@ -6,21 +6,11 @@ class ConsistentHashing(object):
         self.servers = servers
         self.initServerHashes()
 
-    def hashServer(self,i,n):
-        # ensure maximum distance between servers 
-        # on the circle in both clockwise and counter clockwise directions
-        if n == 1:
-            return 256
-        val = int(i/float(n-1))*128 
-        if i < n/2:
-            val = -val 
-        return val + 128
-
     def initServerHashes(self):
         self.serverhashes = []
         n = len(self.servers)
         for i in range(0,n):
-            self.serverhashes.append(self.hashServer(i,n))
+            self.serverhashes.append(256/n*(i+1))
         if settings.DEBUG:
             print("ConsistentHashing server hashes: %s" % self.serverhashes)
             print("ConsistentHashing servers: %s" % self.servers)
